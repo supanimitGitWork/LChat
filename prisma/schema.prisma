@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("USER") // ADMIN, USER
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  groups        Group[]   @relation("GroupMembers")
+  adminGroups   Group[]   @relation("GroupAdmins")
+  messages      Message[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+}
+
+model Group {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  members     User[]    @relation("GroupMembers")
+  admins      User[]    @relation("GroupAdmins")
+  messages    Message[]
+  posts       Post[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  image     String?
+  createdAt DateTime @default(now())
+
+  sender    User     @relation(fields: [senderId], references: [id])
+  senderId  String
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  content   String?
+  mediaUrl  String?
+  mediaType String?   // IMAGE, VIDEO
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  group     Group     @relation(fields: [groupId], references: [id])
+  groupId   String
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+
+  @@unique([authorId, postId])
+}

@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-border: hsl(81 100% 11%);
+  /* #253900 */
+  --color-input: hsl(81 100% 11%);
+  --color-ring: hsl(118 100% 40%);
+  /* #08CB00 */
+
+  --color-background: hsl(0 0% 0%);
+  /* #000000 */
+  --color-foreground: hsl(118 100% 40%);
+  /* #08CB00 */
+
+  --color-primary: hsl(118 100% 40%);
+  --color-primary-foreground: hsl(0 0% 0%);
+
+  --color-secondary: hsl(81 100% 11%);
+  --color-secondary-foreground: hsl(118 100% 40%);
+
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(0 0% 0%);
+
+  --color-muted: hsl(81 100% 5%);
+  --color-muted-foreground: hsl(118 100% 30%);
+
+  --color-accent: hsl(81 100% 11%);
+  --color-accent-foreground: hsl(118 100% 40%);
+
+  --color-popover: hsl(0 0% 0%);
+  --color-popover-foreground: hsl(118 100% 40%);
+
+  --color-card: hsl(0 0% 0%);
+  --color-card-foreground: hsl(118 100% 40%);
+}
+
+/* Explicitly apply theme to root elements */
+@layer base {
+
+  html,
+  body {
+    @apply bg-background text-foreground bg-black min-h-screen;
+    background-color: #000000 !important;
+  }
+
+  /* Custom Scrollbar for Matrix Theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #000000;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #08CB00;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #069c00;
+  }
+
+  /* Firefox support */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #08CB00 #000000;
+  }
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
