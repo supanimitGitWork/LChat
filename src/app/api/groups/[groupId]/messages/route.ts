@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(req: Request, { params }: { params: { groupId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ groupId: string }> }) {
     try {
+        const { groupId } = await params
         const messages = await prisma.message.findMany({
             where: {
-                groupId: params.groupId
+                groupId: groupId
             },
             include: {
                 sender: {
@@ -22,15 +23,16 @@ export async function GET(req: Request, { params }: { params: { groupId: string 
     }
 }
 
-export async function POST(req: Request, { params }: { params: { groupId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ groupId: string }> }) {
     try {
+        const { groupId } = await params
         const body = await req.json()
         const { content, senderId } = body // In real app, get senderId from session
 
         const message = await prisma.message.create({
             data: {
                 content,
-                groupId: params.groupId,
+                groupId: groupId,
                 senderId
             }
         })

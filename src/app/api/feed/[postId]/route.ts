@@ -5,15 +5,15 @@ import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { postId: string } }
+    { params }: { params: Promise<{ postId: string }> }
 ) {
     try {
+        const { postId } = await params;
         const session = await getServerSession(authOptions);
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { postId } = params;
         const user = session.user as any;
         const userId = user.id;
 
