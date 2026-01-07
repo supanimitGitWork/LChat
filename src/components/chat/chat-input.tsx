@@ -2,6 +2,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Send, Image as ImageIcon, X, Loader2 } from "lucide-react"
+import { useUploadThing } from "@/lib/uploadthing"
 
 interface ChatInputProps {
     onSendMessage: (content: string, imageUrl?: string) => void
@@ -10,8 +11,19 @@ interface ChatInputProps {
 export function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { startUpload, isUploading } = useUploadThing("imageUploader", {
+    onClientUploadComplete: (res) => {
+      if (res?.[0]) {
+        setImageUrl(res[0].url)
+      }
+    },
+    onUploadError: (error) => {
+      console.error("Upload failed:", error)
+      alert("UPLOAD_FAILURE: DATA_STREAM_INTERRUPTED")
+    }
+  })
 
   const handleSend = () => {
     if (message.trim() || imageUrl) {
@@ -32,25 +44,8 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
       const file = e.target.files?.[0]
       if (!file) return
 
-      setIsUploading(true)
-      const formData = new FormData()
-      formData.append("file", file)
-
-      try {
-          const res = await fetch("/api/upload", {
-              method: "POST",
-              body: formData,
-          })
-          if (res.ok) {
-              const data = await res.json()
-              setImageUrl(data.url)
-          }
-      } catch (error) {
-          console.error("Upload failed:", error)
-      } finally {
-          setIsUploading(false)
-          if (fileInputRef.current) fileInputRef.current.value = ""
-      }
+      await startUpload([file])
+      if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   return (

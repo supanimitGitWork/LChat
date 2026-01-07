@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X, Loader2, Camera, User } from "lucide-react"
+import { useUploadThing } from "@/lib/uploadthing"
 
 interface ProfileDialogProps {
     isOpen: boolean
@@ -16,11 +17,21 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
     const { data: session, update } = useSession()
     const [name, setName] = useState("")
     const [image, setImage] = useState<string | null>(null)
-    const [isUploading, setIsUploading] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState("")
     const fileInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
+
+    const { startUpload, isUploading } = useUploadThing("imageUploader", {
+        onClientUploadComplete: (res) => {
+            if (res?.[0]) {
+                setImage(res[0].url)
+            }
+        },
+        onUploadError: (err) => {
+            setError(err.message)
+        }
+    })
 
     useEffect(() => {
         if (session?.user) {
@@ -33,28 +44,9 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
         const file = e.target.files?.[0]
         if (!file) return
 
-        setIsUploading(true)
         setError("")
-        const formData = new FormData()
-        formData.append("file", file)
-
-        try {
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            })
-            if (res.ok) {
-                const data = await res.json()
-                setImage(data.url)
-            } else {
-                throw new Error("Upload failed")
-            }
-        } catch (err: any) {
-            setError(err.message)
-        } finally {
-            setIsUploading(false)
-            if (fileInputRef.current) fileInputRef.current.value = ""
-        }
+        await startUpload([file])
+        if (fileInputRef.current) fileInputRef.current.value = ""
     }
 
     const handleSave = async (e: React.FormEvent) => {

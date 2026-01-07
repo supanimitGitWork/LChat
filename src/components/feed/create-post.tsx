@@ -4,15 +4,27 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Image as ImageIcon, Globe, Loader2, X, Send } from "lucide-react"
+import { useUploadThing } from "@/lib/uploadthing"
 
 export function CreatePost() {
   const [content, setContent] = useState("")
   const [groupId, setGroupId] = useState("")
   const [groups, setGroups] = useState<{id: string, name: string}[]>([])
   const [mediaUrl, setMediaUrl] = useState("")
-  const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { startUpload, isUploading } = useUploadThing("imageUploader", {
+    onClientUploadComplete: (res) => {
+      if (res?.[0]) {
+        setMediaUrl(res[0].url)
+      }
+    },
+    onUploadError: (error) => {
+      console.error("Upload failed:", error)
+      alert("UPLOAD_FAILURE: DATA_STREAM_INTERRUPTED")
+    }
+  })
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -36,24 +48,8 @@ export function CreatePost() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setIsUploading(true)
-    const formData = new FormData()
-    formData.append("file", file)
-
-    try {
-        const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData
-        })
-        if (res.ok) {
-            const data = await res.json()
-            setMediaUrl(data.url)
-        }
-    } catch (error) {
-        console.error("Upload failed", error)
-    } finally {
-        setIsUploading(false)
-    }
+    await startUpload([file])
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const handleSubmit = async () => {
