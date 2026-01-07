@@ -21,7 +21,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
     },
     onUploadError: (error) => {
       console.error("Upload failed:", error)
-      alert("UPLOAD_FAILURE: DATA_STREAM_INTERRUPTED")
+      alert(`UPLOAD_FAILURE: ${error.message}`)
     }
   })
 
