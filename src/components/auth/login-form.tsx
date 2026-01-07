@@ -8,9 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import Link from "next/link"
 
 import { signIn } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/groups"
+  
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -28,16 +32,22 @@ export function LoginForm() {
         redirect: false,
         email,
         password,
+        callbackUrl,
       })
 
       if (result?.error) {
+        console.error("Login result error:", result.error)
         setError("Invalid email or password")
         setIsLoading(false)
+      } else if (result?.ok) {
+        // Use window.location for a full reload to ensure session is active
+        window.location.href = callbackUrl
       } else {
-        router.push("/groups")
-        router.refresh()
+        setError("Login failed. Please try again.")
+        setIsLoading(false)
       }
     } catch (error) {
+      console.error("Login catch error:", error)
       setError("Something went wrong")
       setIsLoading(false)
     }
